@@ -1,9 +1,9 @@
 ﻿  dinput8.cpp
   c:\program files (x86)\windows kits\8.1\include\um\dinput.h: DIRECTINPUT_VERSION undefined. Defaulting to version 0x0800
-d:\projekty\emergency-4-wrapper\dinput8\dinput8\dinput8.h(7): warning C4005: 'DIRECTINPUT_VERSION': macro redefinition
+d:\projekty\emergency-4-wrapper\dinput8\dinput8.h(7): warning C4005: 'DIRECTINPUT_VERSION': macro redefinition
   c:\program files (x86)\windows kits\8.1\include\um\dinput.h(48): note: see previous definition of 'DIRECTINPUT_VERSION'
-     Creating library D:\Projekty\Emergency-4-Wrapper\dinput8\Release\dinput8.lib and object D:\Projekty\Emergency-4-Wrapper\dinput8\Release\dinput8.exp
+     Creating library D:\Projekty\Emergency-4-Wrapper\Release\dinput8.lib and object D:\Projekty\Emergency-4-Wrapper\Release\dinput8.exp
   Generating code
   All 11 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Finished generating code
-  dinput8.vcxproj -> D:\Projekty\Emergency-4-Wrapper\dinput8\Release\dinput8.dll
+  dinput8.vcxproj -> D:\Projekty\Emergency-4-Wrapper\Release\dinput8.dll
