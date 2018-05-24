@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# Visual Studio trash
+.vs/
+
+# Debug build
+Debug/
