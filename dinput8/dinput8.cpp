@@ -4,6 +4,7 @@
 int bWidth;
 int bHeight;
 bool bFullscreen;
+bool bSkipIntros;
 
 HMODULE baseModule;
 
@@ -56,6 +57,8 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 				bHeight = 768;
 			}
 			bFullscreen = GetPrivateProfileInt("MAIN", "Windowed", 0, path) != 1;
+			bSkipIntros = GetPrivateProfileInt("MAIN", "SkipIntros", 0, path) != 0;
+
 
 			//Get dll from Windows directory
 			GetSystemDirectory(path, MAX_PATH);
@@ -85,6 +88,13 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 			{
 				//Disable top-most
 				*(byte*)((DWORD)baseModule + 0x33AB0E) = 0;
+			}
+			
+			if (bSkipIntros)
+			{
+				//Modify jump to skip intros
+				*(byte*)((DWORD)baseModule + 0x790D3) = 0xE9;
+				*(DWORD*)((DWORD)baseModule + 0x790D4) = 0x000000C1;
 			}
 
 			break;
