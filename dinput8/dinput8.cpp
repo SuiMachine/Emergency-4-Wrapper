@@ -3,8 +3,14 @@
 //Global Variables
 int bWidth;
 int bHeight;
+float bAspectRatio = 1.33333;
+float bWidthCinematics = 959;
+float bHeightCinematics = 720;
+float bLeftCinematics = 160;
+float bWidthModifier = 0.75;
 bool bFullscreen;
 bool bSkipIntros;
+//bool bCorrectAspectRatioOfCinematics;
 
 HMODULE baseModule;
 
@@ -58,6 +64,8 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 			}
 			bFullscreen = GetPrivateProfileInt("MAIN", "Windowed", 0, path) != 1;
 			bSkipIntros = GetPrivateProfileInt("MAIN", "SkipIntros", 0, path) != 0;
+			//bCorrectAspectRatioOfCinematics = GetPrivateProfileInt("MAIN", "CorrectCinematicsAspectRatio", 0, path) != 0;
+
 
 
 			//Get dll from Windows directory
@@ -76,18 +84,23 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 			baseModule = GetModuleHandleA("em4.exe");
 			UnprotectModule(baseModule);
 
-			//Modify initialization to enable Windowed mode
+			if (true)
 			{
-				int hookLenght = 0x2B;
-				DWORD hookAddress = (DWORD)baseModule + 0x00406DA6;
-				initializeOverrideReturn = hookAddress + hookLenght;
-				Hook((void*)hookAddress, initializeOverride, hookLenght);
+				bAspectRatio = bWidth * 1.0f / bHeight;
+				bWidthModifier = (4.0f / 3) / bAspectRatio;
 			}
 
 			if (bFullscreen == 0)
 			{
 				//Disable top-most
 				*(byte*)((DWORD)baseModule + 0x33AB0E) = 0;
+
+				//Modify initialization to enable Windowed mode
+				int hookLenght = 0x2B;
+				DWORD hookAddress = (DWORD)baseModule + 0x00406DA6;
+				initializeOverrideReturn = hookAddress + hookLenght;
+				Hook((void*)hookAddress, initializeOverride, hookLenght);
+				*(float*)((DWORD)baseModule + 0x786C7) = (float)((bWidth * 1.0f) / bHeight);
 			}
 			
 			if (bSkipIntros)
