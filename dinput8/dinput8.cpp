@@ -1,8 +1,11 @@
 #include "dinput8.h"
+#define ClassName 0x00A034E8
 
 //Global Variables
-int bWidth;
-int bHeight;
+int bPosX = 0;
+int bPosY = 0;
+int bWidth = 1024;
+int bHeight = 768;
 float bAspectRatio = 1.33333;
 float bWidthCinematics = 959;
 float bHeightCinematics = 720;
@@ -39,6 +42,28 @@ void __declspec(naked) initializeOverride()
 	}
 }
 
+//Window Parameters detour
+DWORD windowParametersDetourReturn;
+void __declspec(naked) windowParametersDetour()
+{
+	__asm
+	{
+		push    ebx //lpParam
+		push    edi //hInstance
+		push    ebx //hMenu
+		push    ebx //hWndParent
+		push    ecx //nHeight
+		push    edx //nWidth
+		push    DS:bPosY //Y
+		push    DS:bPosX //X
+		push    ebx //dwStyle
+		push    eax //lpWindowName
+		push    ClassName //"BLWNDCLS"
+		push    0x0L //dwExStyle
+		jmp[windowParametersDetourReturn]
+	}
+}
+
 //Dll Main
 bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 {
@@ -62,11 +87,12 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 				bWidth = 1024;
 				bHeight = 768;
 			}
+
+			bPosX = GetPrivateProfileInt("MAIN", "PosX", 0, path);
+			bPosY = GetPrivateProfileInt("MAIN", "PosY", 0, path);
 			bFullscreen = GetPrivateProfileInt("MAIN", "Windowed", 0, path) != 1;
 			bSkipIntros = GetPrivateProfileInt("MAIN", "SkipIntros", 0, path) != 0;
 			//bCorrectAspectRatioOfCinematics = GetPrivateProfileInt("MAIN", "CorrectCinematicsAspectRatio", 0, path) != 0;
-
-
 
 			//Get dll from Windows directory
 			GetSystemDirectory(path, MAX_PATH);
@@ -92,14 +118,12 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 
 			if (bFullscreen == 0)
 			{
-				//Disable top-most
-				*(byte*)((DWORD)baseModule + 0x33AB0E) = 0;
+				//Modify window properties
+				Hook((DWORD)baseModule + 0x33AAFE, windowParametersDetour, &windowParametersDetourReturn, 0x11);
 
 				//Modify initialization to enable Windowed mode
-				int hookLenght = 0x2B;
-				DWORD hookAddress = (DWORD)baseModule + 0x00406DA6;
-				initializeOverrideReturn = hookAddress + hookLenght;
-				Hook((void*)hookAddress, initializeOverride, hookLenght);
+				Hook((DWORD)baseModule + 0x406DA6, initializeOverride, &initializeOverrideReturn, 0x2B);
+				//Hook((void*)hookAddress, initializeOverride, hookLenght);
 				*(float*)((DWORD)baseModule + 0x786C7) = (float)((bWidth * 1.0f) / bHeight);
 			}
 			
@@ -123,21 +147,23 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 	return TRUE;
 }
 
-bool Hook(void * toHook, void * ourFunction, int lenght)
+bool Hook(DWORD targetToHook, void * ourFunction, DWORD * returnAddress, int overrideLenght)
 {
-	if (lenght < 5)
+	if (overrideLenght < 5)
 		return false;
 
-	DWORD curProtectionFlag;
-	VirtualProtect(toHook, lenght, PAGE_EXECUTE_READWRITE, &curProtectionFlag);
-	memset(toHook, 0x90, lenght);
-	DWORD relativeAddress = ((DWORD)ourFunction - (DWORD)toHook) - 5;
+	*returnAddress = targetToHook + overrideLenght;
 
-	*(BYTE*)toHook = 0xE9;
-	*(DWORD*)((DWORD)toHook + 1) = relativeAddress;
+	DWORD curProtectionFlag;
+	VirtualProtect((void*)targetToHook, overrideLenght, PAGE_EXECUTE_READWRITE, &curProtectionFlag);
+	memset((void*)targetToHook, 0x90, overrideLenght);
+	DWORD relativeAddress = ((DWORD)ourFunction - (DWORD)targetToHook) - 5;
+
+	*(BYTE*)targetToHook = 0xE9;
+	*(DWORD*)((DWORD)targetToHook + 1) = relativeAddress;
 
 	DWORD temp;
-	VirtualProtect(toHook, lenght, curProtectionFlag, &temp);
+	VirtualProtect((void*)targetToHook, overrideLenght, curProtectionFlag, &temp);
 	return true;
 }
 

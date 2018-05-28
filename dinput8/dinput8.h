@@ -41,4 +41,4 @@ struct dinput8_dll
 
 } dinput8;
 
-bool Hook(void * toHook, void * , int lenght);
+bool Hook(DWORD, void *, DWORD *, int );
