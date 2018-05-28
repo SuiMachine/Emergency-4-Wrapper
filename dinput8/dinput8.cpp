@@ -64,6 +64,21 @@ void __declspec(naked) windowParametersDetour()
 	}
 }
 
+//Window Rect Clip fix
+DWORD windowRectFixReturn;
+void __declspec(naked) windowRectFix()
+{
+	__asm
+	{
+		mov eax, DS:bPosX
+		mov [esp+0x4], eax
+		mov eax, DS:bPosY
+		mov [esp+0x8], eax
+		mov eax, 2
+		jmp[windowRectFixReturn]
+	}
+}
+
 //Dll Main
 bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 {
@@ -122,9 +137,11 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 				Hook((DWORD)baseModule + 0x33AAFE, windowParametersDetour, &windowParametersDetourReturn, 0x11);
 
 				//Modify initialization to enable Windowed mode
+				*(byte*)((DWORD)baseModule + 0x7843F) = (byte)0x0;
 				Hook((DWORD)baseModule + 0x406DA6, initializeOverride, &initializeOverrideReturn, 0x2B);
+				Hook((DWORD)baseModule + 0x4E88EA, windowRectFix, &windowRectFixReturn, 0x5);
 				//Hook((void*)hookAddress, initializeOverride, hookLenght);
-				*(float*)((DWORD)baseModule + 0x786C7) = (float)((bWidth * 1.0f) / bHeight);
+				//*(float*)((DWORD)baseModule + 0x786C7) = (float)((bWidth * 1.0f) / bHeight);
 			}
 			
 			if (bSkipIntros)

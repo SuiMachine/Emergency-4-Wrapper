@@ -5,6 +5,6 @@ d:\projekty\emergency-4-wrapper\dinput8\dinput8.h(7): warning C4005: 'DIRECTINPU
 d:\projekty\emergency-4-wrapper\dinput8\dinput8.cpp(9): warning C4305: 'initializing': truncation from 'double' to 'float'
      Creating library D:\Projekty\Emergency-4-Wrapper\Release\dinput8.lib and object D:\Projekty\Emergency-4-Wrapper\Release\dinput8.exp
   Generating code
-  All 12 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  All 13 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Finished generating code
   dinput8.vcxproj -> D:\Projekty\Emergency-4-Wrapper\Release\dinput8.dll
