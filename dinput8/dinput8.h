@@ -2,7 +2,10 @@
 
 #include <dinput.h>
 #include <iostream>
+#include <thread>
 #include "hookFunctions.h"
+#include "Hacks/VisRenderer.h"
+#include "Hacks/VideoHack.h"
 #define INITGUID
 #define DIRECTINPUT_VERSION 0x0800
 
@@ -40,5 +43,7 @@ struct dinput8_dll
 	LPWDllUnregisterServer DllUnregisterServer;
 
 } dinput8;
+
+void ExternHookThreadFunction();
 
 bool Hook(DWORD, void *, DWORD *, int );

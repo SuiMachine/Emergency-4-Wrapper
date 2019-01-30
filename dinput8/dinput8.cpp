@@ -6,16 +6,23 @@ int bPosX = 0;
 int bPosY = 0;
 int bWidth = 1024;
 int bHeight = 768;
-float bAspectRatio = 1.33333;
-float bWidthCinematics = 959;
-float bHeightCinematics = 720;
-float bLeftCinematics = 160;
-float bWidthModifier = 0.75;
 bool bFullscreen;
 bool bSkipIntros;
-//bool bCorrectAspectRatioOfCinematics;
+bool bCorrectAspectRatioOfCinematics;
 
 HMODULE baseModule;
+VisRenderer * visRenderer;
+
+void ExternHookThreadFunction()
+{
+	HMODULE visModule;
+	while ((visModule = GetModuleHandle("vision71.dll")) == NULL)
+		Sleep(10);
+
+	UnprotectModule(visModule);
+	visRenderer = new VisRenderer(baseModule, visModule);
+	visRenderer->InstallDetourPerspectiveToAngles(&bWidth, &bHeight);
+}
 
 //Detours
 DWORD initializeOverrideReturn;
@@ -107,7 +114,7 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 			bPosY = GetPrivateProfileInt("MAIN", "PosY", 0, path);
 			bFullscreen = GetPrivateProfileInt("MAIN", "Windowed", 0, path) != 1;
 			bSkipIntros = GetPrivateProfileInt("MAIN", "SkipIntros", 0, path) != 0;
-			//bCorrectAspectRatioOfCinematics = GetPrivateProfileInt("MAIN", "CorrectCinematicsAspectRatio", 0, path) != 0;
+			bCorrectAspectRatioOfCinematics = GetPrivateProfileInt("MAIN", "CorrectVideoAspectRatio", 0, path) != 0;
 
 			//Get dll from Windows directory
 			GetSystemDirectory(path, MAX_PATH);
@@ -125,11 +132,7 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 			baseModule = GetModuleHandleA("em4.exe");
 			UnprotectModule(baseModule);
 
-			if (true)
-			{
-				bAspectRatio = bWidth * 1.0f / bHeight;
-				bWidthModifier = (4.0f / 3) / bAspectRatio;
-			}
+
 
 			if (bFullscreen == 0)
 			{
@@ -140,8 +143,6 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 				*(byte*)((DWORD)baseModule + 0x7843F) = (byte)0x0;
 				Hook((DWORD)baseModule + 0x406DA6, initializeOverride, &initializeOverrideReturn, 0x2B);
 				Hook((DWORD)baseModule + 0x4E88EA, windowRectFix, &windowRectFixReturn, 0x5);
-				//Hook((void*)hookAddress, initializeOverride, hookLenght);
-				//*(float*)((DWORD)baseModule + 0x786C7) = (float)((bWidth * 1.0f) / bHeight);
 			}
 			
 			if (bSkipIntros)
@@ -150,6 +151,13 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 				*(byte*)((DWORD)baseModule + 0x790D3) = 0xE9;
 				*(DWORD*)((DWORD)baseModule + 0x790D4) = 0x000000C1;
 			}
+
+			if (bCorrectAspectRatioOfCinematics)
+			{
+				auto tmp = new VideoHack(baseModule);
+				tmp->InstallVideoHack(&bWidth, &bHeight);
+			}
+			CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)ExternHookThreadFunction, NULL, NULL, NULL);
 
 			break;
 		}

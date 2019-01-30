@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Hacks">
+      <UniqueIdentifier>{372c6a51-7eb6-4131-99fd-f40a799a6845}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Hacks">
+      <UniqueIdentifier>{16c2b01d-6a17-4729-a1df-7986f9f0ef60}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dinput8.h">
@@ -21,10 +27,22 @@
     <ClInclude Include="hookFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Hacks\VideoHack.h">
+      <Filter>Header Files\Hacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Hacks\VisRenderer.h">
+      <Filter>Header Files\Hacks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dinput8.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Hacks\VideoHack.cpp">
+      <Filter>Source Files\Hacks</Filter>
+    </ClCompile>
+    <ClCompile Include="Hacks\VisRenderer.cpp">
+      <Filter>Source Files\Hacks</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

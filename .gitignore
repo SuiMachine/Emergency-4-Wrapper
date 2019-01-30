@@ -37,3 +37,7 @@ Debug/
 
 # Archives
 *.zip
+
+# Intermediate build directories
+dinput8/Debug/*
+dinput8/Release/*

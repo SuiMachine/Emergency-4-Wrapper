@@ -14,6 +14,64 @@ static void UnprotectModule(HMODULE p_Module)
 	VirtualProtect((LPVOID)p_Module, s_ImageSize, PAGE_EXECUTE_READWRITE, &s_OldProtect);
 }
 
+static bool GetAddressOFExternFunction(HMODULE pModule, const char* exportFuncName, intptr_t& FunctionStart )
+{
+	PIMAGE_NT_HEADERS header = (PIMAGE_NT_HEADERS)((intptr_t)pModule + ((PIMAGE_DOS_HEADER)pModule)->e_lfanew);
+	PIMAGE_EXPORT_DIRECTORY exports = (PIMAGE_EXPORT_DIRECTORY)((BYTE*)pModule + header->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+	BYTE ** names = (BYTE**)((intptr_t)pModule + exports->AddressOfNames);
+	for (int i = 0; i < exports->NumberOfNames; i++)
+	{
+		auto expp = (char*)((intptr_t)pModule + (int)names[i]);
+		if (strcmp(expp, exportFuncName) == 0x0)
+		{
+			auto ordinal = *(short*)((intptr_t)pModule + exports->AddressOfNameOrdinals + i * sizeof(short));
+
+			auto addressOfFunction = *(intptr_t*)((intptr_t)pModule + exports->AddressOfFunctions + ordinal * sizeof(int));
+			FunctionStart = ((intptr_t)pModule + addressOfFunction);
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool HookInsideFunction(DWORD targetToHook, void * ourFunction, DWORD * returnAddress, int overrideLenght)
+{
+	if (overrideLenght < 5)
+		return false;
+
+	*returnAddress = targetToHook + overrideLenght;
+
+	DWORD curProtectionFlag;
+	VirtualProtect((void*)targetToHook, overrideLenght, PAGE_EXECUTE_READWRITE, &curProtectionFlag);
+	memset((void*)targetToHook, 0x90, overrideLenght);
+	DWORD relativeAddress = ((DWORD)ourFunction - (DWORD)targetToHook) - 5;
+
+	*(BYTE*)targetToHook = 0xE9;
+	*(DWORD*)((DWORD)targetToHook + 1) = relativeAddress;
+
+	DWORD temp;
+	VirtualProtect((void*)targetToHook, overrideLenght, curProtectionFlag, &temp);
+	return true;
+}
+
+static bool HookTrampoline(DWORD targetToHook, void * ourFunction, int overrideLenght)
+{
+	if (overrideLenght < 5)
+		return false;
+
+	DWORD curProtectionFlag;
+	VirtualProtect((void*)targetToHook, overrideLenght, PAGE_EXECUTE_READWRITE, &curProtectionFlag);
+	memset((void*)targetToHook, 0x90, overrideLenght);
+	DWORD relativeAddress = ((DWORD)ourFunction - (DWORD)targetToHook) - 5;
+
+	*(BYTE*)targetToHook = 0xE9;
+	*(DWORD*)((DWORD)targetToHook + 1) = relativeAddress;
+
+	DWORD temp;
+	VirtualProtect((void*)targetToHook, overrideLenght, curProtectionFlag, &temp);
+	return true;
+}
+
 static void suiDebugMsgBox(char characters[])
 {
 	MessageBox(NULL, characters, "Title", MB_OK);
