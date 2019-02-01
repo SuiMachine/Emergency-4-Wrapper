@@ -54,7 +54,7 @@ static bool HookInsideFunction(DWORD targetToHook, void * ourFunction, DWORD * r
 	return true;
 }
 
-static bool HookTrampoline(DWORD targetToHook, void * ourFunction, int overrideLenght)
+static bool HookJmpTrampoline(DWORD targetToHook, void * ourFunction, int overrideLenght)
 {
 	if (overrideLenght < 5)
 		return false;
@@ -65,6 +65,24 @@ static bool HookTrampoline(DWORD targetToHook, void * ourFunction, int overrideL
 	DWORD relativeAddress = ((DWORD)ourFunction - (DWORD)targetToHook) - 5;
 
 	*(BYTE*)targetToHook = 0xE9;
+	*(DWORD*)((DWORD)targetToHook + 1) = relativeAddress;
+
+	DWORD temp;
+	VirtualProtect((void*)targetToHook, overrideLenght, curProtectionFlag, &temp);
+	return true;
+}
+
+static bool HookCallTrampoline(DWORD targetToHook, void * ourFunction, int overrideLenght)
+{
+	if (overrideLenght < 5)
+		return false;
+
+	DWORD curProtectionFlag;
+	VirtualProtect((void*)targetToHook, overrideLenght, PAGE_EXECUTE_READWRITE, &curProtectionFlag);
+	memset((void*)targetToHook, 0x90, overrideLenght);
+	DWORD relativeAddress = ((DWORD)ourFunction - (DWORD)targetToHook) - 5;
+
+	*(BYTE*)targetToHook = 0xE8;
 	*(DWORD*)((DWORD)targetToHook + 1) = relativeAddress;
 
 	DWORD temp;

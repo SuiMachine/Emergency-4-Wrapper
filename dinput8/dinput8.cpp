@@ -22,31 +22,7 @@ void ExternHookThreadFunction()
 	UnprotectModule(visModule);
 	visRenderer = new VisRenderer(baseModule, visModule);
 	visRenderer->InstallDetourPerspectiveToAngles(&bWidth, &bHeight);
-}
-
-//Detours
-DWORD initializeOverrideReturn;
-void __declspec(naked) initializeOverride()
-{
-	_asm
-	{
-		mov eax, [eax+0x18]
-		mov ecx, DS:[0xBD9538]
-		mov edx, DS:[0xBD94C8]
-		push 0
-		push eax
-		movzx eax, [bFullscreen]
-		mov DS:[0xBD937C],eax
-		push    0
-		push    eax
-		mov     eax, DS:[0xBD9458]
-		push    ecx
-		mov     ecx, DS:[0xBD93E8]
-		push    edx
-		push    eax
-		push    ecx
-		jmp[initializeOverrideReturn]
-	}
+	visRenderer->InstallDetourVisVideoCLSetMode(bFullscreen);
 }
 
 //Window Parameters detour
@@ -134,17 +110,13 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 
 
 
-			if (bFullscreen == 0)
+			if (false)
 			{
 				//Modify window properties
-				Hook((DWORD)baseModule + 0x33AAFE, windowParametersDetour, &windowParametersDetourReturn, 0x11);
-
-				//Modify initialization to enable Windowed mode
-				*(byte*)((DWORD)baseModule + 0x7843F) = (byte)0x0;
-				Hook((DWORD)baseModule + 0x406DA6, initializeOverride, &initializeOverrideReturn, 0x2B);
-				Hook((DWORD)baseModule + 0x4E88EA, windowRectFix, &windowRectFixReturn, 0x5);
+				HookInsideFunction((DWORD)baseModule + 0x33AAFE, windowParametersDetour, &windowParametersDetourReturn, 0x11);
+				HookInsideFunction((DWORD)baseModule + 0x4E88EA, windowRectFix, &windowRectFixReturn, 0x5);
 			}
-			
+
 			if (bSkipIntros)
 			{
 				//Modify jump to skip intros
@@ -170,26 +142,6 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 	}
 
 	return TRUE;
-}
-
-bool Hook(DWORD targetToHook, void * ourFunction, DWORD * returnAddress, int overrideLenght)
-{
-	if (overrideLenght < 5)
-		return false;
-
-	*returnAddress = targetToHook + overrideLenght;
-
-	DWORD curProtectionFlag;
-	VirtualProtect((void*)targetToHook, overrideLenght, PAGE_EXECUTE_READWRITE, &curProtectionFlag);
-	memset((void*)targetToHook, 0x90, overrideLenght);
-	DWORD relativeAddress = ((DWORD)ourFunction - (DWORD)targetToHook) - 5;
-
-	*(BYTE*)targetToHook = 0xE9;
-	*(DWORD*)((DWORD)targetToHook + 1) = relativeAddress;
-
-	DWORD temp;
-	VirtualProtect((void*)targetToHook, overrideLenght, curProtectionFlag, &temp);
-	return true;
 }
 
 HRESULT WINAPI DirectInput8Create(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID * ppvOut, LPUNKNOWN punkOuter)
