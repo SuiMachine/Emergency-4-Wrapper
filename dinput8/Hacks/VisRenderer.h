@@ -7,7 +7,8 @@ class VisRenderer
 public:
 	VisRenderer(HMODULE baseModule, HMODULE oVisRendererModule);
 	void InstallDetourPerspectiveToAngles(int * surfaceWidth, int * surfaceHeight);
-	void InstallDetourVisVideoCLSetMode(bool isFullscreen);
+	void InstallDetourVisRendererSetMaxAnistropy(float Anisotropy);
+	void InstallDetourVisVideoCLSetMode(int Width, int Height, bool isFullscreen);
 	~VisRenderer();
 private:
 	HMODULE baseModule;

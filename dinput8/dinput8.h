@@ -6,6 +6,7 @@
 #include "hookFunctions.h"
 #include "Hacks/VisRenderer.h"
 #include "Hacks/VideoHack.h"
+#include "inireader/IniReader.h"
 #define INITGUID
 #define DIRECTINPUT_VERSION 0x0800
 

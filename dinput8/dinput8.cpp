@@ -22,7 +22,8 @@ void ExternHookThreadFunction()
 	UnprotectModule(visModule);
 	visRenderer = new VisRenderer(baseModule, visModule);
 	visRenderer->InstallDetourPerspectiveToAngles(&bWidth, &bHeight);
-	visRenderer->InstallDetourVisVideoCLSetMode(bFullscreen);
+	visRenderer->InstallDetourVisVideoCLSetMode(bWidth, bHeight, bFullscreen);
+	visRenderer->InstallDetourVisRendererSetMaxAnistropy(1.0f);
 }
 
 //Window Parameters detour
@@ -76,21 +77,22 @@ bool WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 			GetModuleFileNameA(hm, path, sizeof(path));
 			*strrchr(path, '\\') = '\0';
 			strcat_s(path, "\\dinput8.ini");
+			CIniReader configReader(path);
 
 			//Load info from ini
-			bWidth = GetPrivateProfileInt("MAIN", "Width", 0, path);
-			bHeight = GetPrivateProfileInt("MAIN", "Height", 0, path);
+			bWidth = configReader.ReadInteger("MAIN", "Width", 0);
+			bHeight = configReader.ReadInteger("MAIN", "Height", 0);
 			if (bWidth == 0 || bHeight == 0)
 			{
 				bWidth = 1024;
 				bHeight = 768;
 			}
 
-			bPosX = GetPrivateProfileInt("MAIN", "PosX", 0, path);
-			bPosY = GetPrivateProfileInt("MAIN", "PosY", 0, path);
-			bFullscreen = GetPrivateProfileInt("MAIN", "Windowed", 0, path) != 1;
-			bSkipIntros = GetPrivateProfileInt("MAIN", "SkipIntros", 0, path) != 0;
-			bCorrectAspectRatioOfCinematics = GetPrivateProfileInt("MAIN", "CorrectVideoAspectRatio", 0, path) != 0;
+			bPosX = configReader.ReadInteger("MAIN", "PosX", 0);
+			bPosY = configReader.ReadInteger("MAIN", "PosY", 0);
+			bFullscreen = configReader.ReadInteger("MAIN", "Windowed", 0) != 1;
+			bSkipIntros = configReader.ReadInteger("MAIN", "SkipIntros", 0) != 0;
+			bCorrectAspectRatioOfCinematics = configReader.ReadInteger("MAIN", "CorrectVideoAspectRatio", 0) != 0;
 
 			//Get dll from Windows directory
 			GetSystemDirectory(path, MAX_PATH);

@@ -6,7 +6,7 @@ VisRenderer::VisRenderer(HMODULE baseModule, HMODULE oVisRendererModule)
 	this->oVisRendererModule = oVisRendererModule;
 }
 
-#pragma region DetourPerspectiveToAngles
+#pragma region VisRendererPerspectiveToAngles
 float pAspectRatio = 1.77777f;
 void __stdcall detouredPerspectiveToAngles(float ConfigsFOV, float * FOV_Horizontal, float * FOV_Vertical, float AspectRatio)
 {
@@ -25,12 +25,48 @@ void VisRenderer::InstallDetourPerspectiveToAngles(int * surfaceWidth, int * sur
 	}
 }
 #pragma endregion
+float pAnisotropy = 1.0f;
+typedef void (__thiscall *setAnisotropyInsideClass)(float * th, float a2, char a3);
+void __stdcall detouredVisRendererSetMaxAnisotropy(float AnisotropicAmount)
+{
+	setAnisotropyInsideClass f = (setAnisotropyInsideClass)0x100EE080;
+	f((float*)0x10144E98, pAnisotropy, 1);
+}
 
+void VisRenderer::InstallDetourVisRendererSetMaxAnistropy(float Anisotropy)
+{
+	pAnisotropy = Anisotropy;
+	intptr_t pVisRendererSetMaxAnisotropy = 0x0;
+	if (GetAddressOFExternFunction(oVisRendererModule, "?SetMaxAnisotropy@VisRenderer_cl@@QAEXM@Z", pVisRendererSetMaxAnisotropy))
+	{
+		HookJmpTrampoline(pVisRendererSetMaxAnisotropy, &detouredVisRendererSetMaxAnisotropy, 6);
+	}
+}
+
+#pragma region  VisVideoClSetMode
+int localWidth;
+int localHeight;
 int localIsFullscreen;
 void __declspec(naked) detouredVisVideoCLSetMode()
 {
+	//Since this code is called with code assembly instruction, on top of a stack we get additional 4 byte of return address
+	//so every instruction accessing the stack inderectly has to be offset by addtional 4 bytes, hence +4
+	//Stack looks like this:
+	//0x00 - this
+	//0x04 - ResolutionX
+	//0x08 - ResolutionY
+	//0x0C - BPP
+	//0x10 - zBufferBits
+	//0x14 - Fullscreen
+	//0x18 - Unknown
+	//0x1C - Unknown
+	//0x20 - Refresh Rate
 	__asm
 	{
+		mov eax, [localWidth]
+		mov [esp+0x04+4], eax
+		mov eax, [localHeight]
+		mov [esp+0x08+4], eax
 		mov eax,[localIsFullscreen]
 		mov [esp+0x14+4],eax		
 		mov eax,[esp+0x4+4]
@@ -39,26 +75,20 @@ void __declspec(naked) detouredVisVideoCLSetMode()
 	}
 }
 
-void VisRenderer::InstallDetourVisVideoCLSetMode(bool isFullscreen)
+void VisRenderer::InstallDetourVisVideoCLSetMode(int Width, int Height, bool isFullscreen)
 {
-	//VisVideo_cl::SetMode(VisVideo_cl *this, int ResolutionX, int ResolutionY, int bpp, int zBufferBits, int IsFullscreen, int a7, int a8, int refreshRate)
-	//Stack looks like this:
-	//0x00 - this
-	//0x04 - ResolutionX
-	//0x08 - ResolutionY
-	//0x0C - BPP
-	//0x10 - zBufferBits
-	//0x14 - Fullscreen
+	localWidth = Width;
+	localHeight = Height;
 	localIsFullscreen = isFullscreen;
 	intptr_t pVisVideoSetMode = 0x0;
 	if (GetAddressOFExternFunction(oVisRendererModule, "?SetMode@VisVideo_cl@@QAEJHHJJHHHJ@Z", pVisVideoSetMode))
 	{
 		HookCallTrampoline(pVisVideoSetMode, &detouredVisVideoCLSetMode, 8);
 	}
-
-
-
 }
+#pragma endregion
+
+
 
 VisRenderer::~VisRenderer()
 {
