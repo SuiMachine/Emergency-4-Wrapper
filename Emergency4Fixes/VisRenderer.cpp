@@ -1,21 +1,21 @@
 #include "VisRenderer.h"
 
-VisRenderer::VisRenderer(HMODULE baseModule, HMODULE oVisRendererModule)
+VisRenderer::VisRenderer()
 {
-	this->baseModule = baseModule;
-	this->oVisRendererModule = oVisRendererModule;
+	this->baseModule = GetModuleHandle(NULL);
+	this->oVisRendererModule = GetModuleHandle("vision71.dll");
 }
 
 #pragma region VisRendererPerspectiveToAngles
 float pAspectRatio = 1.77777f;
-void __stdcall detouredPerspectiveToAngles(float ConfigsFOV, float * FOV_Horizontal, float * FOV_Vertical, float AspectRatio)
+void __stdcall detouredPerspectiveToAngles(float ConfigsFOV, float* FOV_Horizontal, float* FOV_Vertical, float AspectRatio)
 {
 	//ignoring aspect ratio provided by the game and using our own
 	*FOV_Horizontal = atan2f(160.0f / ConfigsFOV, 1.0) * 114.59155f;
 	*FOV_Vertical = atan2(160.0f / (ConfigsFOV * pAspectRatio), 1.0f) * 114.59155f;
 }
 
-void VisRenderer::InstallDetourPerspectiveToAngles(int * surfaceWidth, int * surfaceHeight)
+void VisRenderer::InstallDetourPerspectiveToAngles(int* surfaceWidth, int* surfaceHeight)
 {
 	pAspectRatio = *surfaceWidth * 1.0f / *surfaceHeight;
 	intptr_t pPerspectiveToAnglesStart = 0x0;
@@ -26,7 +26,7 @@ void VisRenderer::InstallDetourPerspectiveToAngles(int * surfaceWidth, int * sur
 }
 #pragma endregion
 float pAnisotropy = 1.0f;
-typedef void (__thiscall *setAnisotropyInsideClass)(float * th, float a2, char a3);
+typedef void(__thiscall* setAnisotropyInsideClass)(float* th, float a2, char a3);
 void __stdcall detouredVisRendererSetMaxAnisotropy(float AnisotropicAmount)
 {
 	setAnisotropyInsideClass f = (setAnisotropyInsideClass)0x100EE080;
@@ -64,13 +64,13 @@ void __declspec(naked) detouredVisVideoCLSetMode()
 	__asm
 	{
 		mov eax, [localWidth]
-		mov [esp+0x04+4], eax
+		mov[esp + 0x04 + 4], eax
 		mov eax, [localHeight]
-		mov [esp+0x08+4], eax
-		mov eax,[localIsFullscreen]
-		mov [esp+0x14+4],eax		
-		mov eax,[esp+0x4+4]
-		mov edx,[esp+0x0C+4]
+		mov[esp + 0x08 + 4], eax
+		mov eax, [localIsFullscreen]
+		mov[esp + 0x14 + 4], eax
+		mov eax, [esp + 0x4 + 4]
+		mov edx, [esp + 0x0C + 4]
 		ret
 	}
 }

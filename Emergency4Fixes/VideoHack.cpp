@@ -12,21 +12,21 @@ void __declspec(naked) videoCorrectionLowLevel()
 	__asm
 	{
 		fild[eax + 0x160]		//Frame Width
-		fmul [WidthCorrection]
+		fmul[WidthCorrection]
 		mov edx, [esp + 4 + 0x8]
 		fistp[edx]	//requires SSE3
 
-		fild [eax + 0x164]		//Frame Width
+		fild[eax + 0x164]		//Frame Width
 		//fmul [WidthCorrection]
 		mov edx, [esp + 4 + 0xC]
-		fistp [edx]	//requires SSE3
+		fistp[edx]	//requires SSE3
 
-		jmp [returnVideoCorrection]
+		jmp[returnVideoCorrection]
 	}
 }
 
 
-void VideoHack::InstallVideoHack(int * surfaceWidth, int * surfaceHeight)
+void VideoHack::InstallVideoHack(int* surfaceWidth, int* surfaceHeight)
 {
 	WidthCorrection = *surfaceWidth * 1.0f / *surfaceHeight;
 	HookInsideFunction(0x00826CB9, &videoCorrectionLowLevel, &returnVideoCorrection, 0x18);

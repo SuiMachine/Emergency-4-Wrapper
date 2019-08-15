@@ -39,5 +39,5 @@ Debug/
 *.zip
 
 # Intermediate build directories
-dinput8/Debug/*
-dinput8/Release/*
+Emergency4Fixes/Debug/*
+Emergency4Fixes/Release/*

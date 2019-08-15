@@ -14,40 +14,46 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Header Files\Hacks">
-      <UniqueIdentifier>{372c6a51-7eb6-4131-99fd-f40a799a6845}</UniqueIdentifier>
+      <UniqueIdentifier>{2c589e12-30f8-4b24-8f7f-b4704ffd6059}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Hacks">
-      <UniqueIdentifier>{16c2b01d-6a17-4729-a1df-7986f9f0ef60}</UniqueIdentifier>
+      <UniqueIdentifier>{85ad903d-203a-4119-9f6a-03598e32b92b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dinput8.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="hookFunctions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Hacks\VideoHack.h">
-      <Filter>Header Files\Hacks</Filter>
-    </ClInclude>
-    <ClInclude Include="Hacks\VisRenderer.h">
-      <Filter>Header Files\Hacks</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="dinput8.cpp">
+    <ClCompile Include="Emergency4Fixes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hacks\VideoHack.cpp">
+    <ClCompile Include="Emergency4Hacks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VisRenderer.cpp">
       <Filter>Source Files\Hacks</Filter>
     </ClCompile>
-    <ClCompile Include="Hacks\VisRenderer.cpp">
+    <ClCompile Include="VideoHack.cpp">
       <Filter>Source Files\Hacks</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="dinput8.def">
-      <Filter>Source Files</Filter>
-    </None>
+    <ClInclude Include="Emergency4Hacks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HookFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Versioninfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VisRenderer.h">
+      <Filter>Header Files\Hacks</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoHack.h">
+      <Filter>Header Files\Hacks</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Versioninfo.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
